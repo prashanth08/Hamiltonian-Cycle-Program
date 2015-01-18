@@ -1,0 +1,41 @@
+
+# Sample Test File for Hamiltonian Cycle Program
+
+#dbh100d2p0.15d3p0.85-phOvsc-i1g10
+#  - generate 100 vertex degreebound graph, 15% degree 2, 85% degree 3
+#  - use posa-heur algorithm with smartvisit, smartcomplete and cycleextend
+#  - run algorithm on 10 graphs, 1 time per graph
+
+#ac200c2.2-baOmibc-si5g10
+#  - generate 200 vertex addcycle graph with numcycles = 2.2
+#  - use backtrack algorithm with initial vertex = maximumdegree, vertex
+#	sort = increasing order, and with pruning = basic + cycle.
+#  - run algorithm on 10 graphs, 5 times per graph and save each graph
+
+#cr6-baOmibc-i10g1
+#  - generate a crossroads graph with 6 subgraphs
+#  - use backtrack algorithm (as before)
+#  - run algorithm on same graph 10 times
+
+#ktm1x4b5x24-baOribc-i10g1
+#  - generate a generalized knight's circuit graph (1,4) - 5 x 24
+#  - use backtrack algorithm with initial vertex = random
+#  - run algorithm on same graph 10 times
+
+#ra200d1.0-baOribc-i1g100
+#  - generate a 200 vertex random graph with degree constant = 1.0
+#  - use backtrack algorithm
+#  - run algorithm once per graph on 100 graphs
+
+#ap50p0.9p0.8-baOribc-i1g100
+#  - generate a 50 vertex addpath graph with paths of length 0.8 and 0.9
+#	(80% and 90% of Hamiltonian Paths)
+#  - use backtrack algorithm
+#  - run algorithm once per graph on 100 graphs
+
+#ic4i6-bai3Orrbco-i1g100
+#  - generate an ICCS graph with 4 subgraphs and 6 vertices per independent set
+#  - use backtrack algorithm with random (no) degree sorting strategy &
+#	component checking & iterated restart (increment = 3)
+#  - run algorithm once per graph on 100 graphs
+

@@ -1,0 +1,34 @@
+
+# Sample options file for Hamiltonian Cycle Program
+
+#-graphgen geometric +nvertex=50 +dist2=0.0625 +mindeg=2
+#-graphgen knighttour +move1=1 +move2=4 +board1=5 +board2=24
+#-graphgen degreebound +ensureham +nvertex=100 +d2=0.4 +d3=0.2 +d4=0.4
+#-graphgen degreebound +nvertex=500 +d2=0.190 +d3=0.810 
+#-graphgen crossroads +subgraphs=7
+#-graphgen random +nvertex=100 +meandeg=6.00
+#-graphgen random +nvertex=100 +degconst=1.00
+#-graphgen degreebound +nvertex=400 +d2=0.150 +d3=0.850 
+#-graphgen addcycle +nvertex=100 +numcycles=2.00
+#-graphgen addpath +nvertex=20 +path1=1.0 +path2=1.0
+#-graphgen iccs +subgraphs=4 +indsetsize=6
+
+-graphgen random +nvertex=100 +degconst=1.10
+
+-savegraph 
+
+#-algorithm noprune_bt 
+#-algorithm posa_heur +smartvisit +smartcomplete +cycleextend
+
+-algorithm backtrack +initvert=maxdeg +degsort=min +pruneopt=BC +restart=3
+
+-instancetests	1
+-graphtests	1
+
+-timelimit -1
+
+#-randseed 881255916
+
+-report +options +alg +graph +solution +summary
+
+

@@ -1,0 +1,682 @@
+**********************************************************************
+
+Hamiltonian Cycle Program:  Manual
+
+**********************************************************************
+
+	Author: Basil Vandegriend
+	Email: basil@cs.ualberta.ca
+        Last Updated:  Jan 22, 1998
+
+	Copyright (c) 1998 Basil Vandegriend and Joseph Culberson. 
+	All rights reserved.
+
+        Redistribution and use in source and binary forms, with or without
+        modification, are permitted provided that the following conditions
+        are met:
+        1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+        2. Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.
+        3. All advertising materials mentioning features or use of this
+        software must display the following acknowledgement:
+        "This product includes software developed by the University of
+        Alberta, Edmonton."
+        4. Neither the name of the University nor the names of its
+	contributors may be used to endorse or promote products derived 
+	from this software without specific prior written permission.
+
+        THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS ``AS IS'' AND ANY
+        EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+        THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+        PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+        CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+        SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+        NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+        LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+        HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+        CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+        OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+        EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+        THIS SOFTWARE IS SUPPLIED WITHOUT ANY SUPPORT SERVICES.
+
+**********************************************************************
+
+0. Table of Contents
+--------------------
+
+1.  Introduction
+2.  An Overview of the Program
+3.  The Option File Format
+4.  The Test File Format
+5.  Result Files
+
+
+1. Introduction
+-----------------------------
+
+This is the user's manual for the Hamiltonian Cycle Program.  It describes
+how to use the program to execute various algorithms on various classes of
+graphs.  Many terms used in this manual come from Basil
+Vandegriend's master's thesis:  Finding Hamiltonian Cycles:  Algorithms,
+Graphs and Performance, for which this program was written.  
+
+
+2. An Overview of the Program
+-----------------------------
+
+The program consists of C source code for the UNIX operating system
+and is divided into various source and include files.  A makefile is
+also included.  Compile the program using make:  it will create the
+executable file "main".
+
+The program uses files for the majority of its operation.  Experiments
+are listed by the researcher within a text file (the experiment file).
+The program is executed with the filename of the experiment file passed on
+the command line.  The program then performs the specified experiment(s)
+and saves the results in one or more text files (result files) which
+can be examined by the researcher.
+
+There are two different formats for the experiment file:  the option file
+and the test file.  The option file allows for detailed specification
+of a single experiment.  A single experiment may consist of many trials,
+but can only use one algorithm and one graph.  All possible options can be
+set in the option file.  The test file allows for a single experiment to
+be specified per line, in a condensed format.  This allows for multiple
+experiments using different algorithms, different graphs and graphs with
+different parameters.  The condensed format however limits the number
+of options that can be specified for any particular experiment:  the
+result are set to values as specified by the test code inside "tester.c".
+
+When processing a test file, the program reads a single experiment,
+builds an option file for that experiment, then makes a system call
+to re-execute itself using the option file.  When this experiment is
+completed, the next experiment is executed.  Thus, the results of a test
+file experiment are identical to a series of option file experiments.
+
+The program is executed as follows for each experiment file format:
+
+To use an option file called <optionfile>:
+	>main -o <optionfile>
+
+To use a test file called <testfile>:
+	>main -t <testfile>
+
+Note that all option filenames should end with the extension ".opt" and
+that all test filenames should end with the extension ".test".  A sample
+option file (sampleopt.opt) and a sample test file (sampletest.test)
+are provided with the program.
+
+Section 2 describes the option file format, Section 3 describes the test
+file format, and Section 4 describes the various result files that the
+program produces.
+
+
+3.  The Option File Format
+--------------------------
+
+The option file consists of one or more arguments.  Unspecified arguments 
+use a default value (the default values for the different arguments are
+given below).  The basic format of an argument is as follows:
+
+-<argumentname> <argumentvalue> [parameter list]
+	OR
+-<argumentname> [<argumentvalue>]
+	OR
+-<argumentname>	
+
+The parameter list is specified as follows:
+
++algparm1 [+algparm2=value2] [-algparm3] [...] 
+
+Certain arguments have values associated with the argument that
+are either mandetory or optional.  In additional, certain arguments have
+optional parameters which can be specified.
+
+Any line can be made into a comment by placing the '#' character at the
+start of the line.  All commented lines are ignored.
+
+The rest of this section lists the different arguments and describes the
+format of each.
+
+3.1  Graph Generation Argument
+------------------------------
+
+This argument specifies which type of graph to generate to find
+Hamiltonian Cycles on.
+Format: -graphgen <graphtype> <parameters> 
+
+<graphtype> Values	Description (all have parameters)
+---------------------------------------------------------
+nograph			do not generate a graph (default)
+geometric 		generate a geometic graph
+random			generate a Gn,m random graph
+degreebound		generate a degreebound graph
+knighttour		generate a generalized knight's circuit graph
+crossroads		generate a crossroads graph
+addcycle		generate an addcycle graph
+addpath			generate an addpath graph
+iccs			generate an interconnected cutset graph
+
+Common Parameters for all graph types 
+(except for knighttour, crossroads and iccs graphs)
+
++nvertex=<number of vertices>	number of vertices in graph
+
++ensureham			
+
+The +ensureham flag guarantees that the generated graph is Hamiltonian.
+This is done by generating the graph, running the backtrack algorithm
+on it, and regenerating the graph if it turns out to be non-Hamiltonian.
+This option should be used with caution, and is only intended for random
+and degreebound graphs (usually in conjunction with the posa_heur algorithm).
+
+
+Parameters for: -graphgen geometric
+
++mindeg=<minimum graph degree>  minimum degree of all vertices
+
++dist=<distance>		distance or distance squared
+    OR				note that range is from 0 to 1
++dist2=<distance squared>
+
++dim				# of dimensions
+
++near OR +far			flag to specify if connect near or 
+				connect far
+
++wrap OR +nowrap		flag to specify if sides connect up (WRAP)
+				or not (NOWRAP)
+
+
+Parameters for: -graphgen random
+
++meandeg=<mean degree>		the mean degree of the graph
+     OR				num edges = mean degree * n / 2
++degconst=<degree constant>     the degree constant (d)
+				mean degree = d * (log n + log log n) 
+
+
+Parameters for: -graphgen degreebound
+
++d<i>=<pi>	A percentage <pi> of the vertices will have degree d<i>
+
+Example: a 200 vertex graph with 17% of vertices degree 2, 60% of vertices 
+degree 3, and 23% of vertices degree 4:
+	-graphgen degreebound +nvertex=200 +d2=0.17 +d3=0.6 +d4=0.23
+
+
+Parameters for: -graphgen knighttour
+
++move1=<distance of piece move #1>		GKC parameter A
++move2=<distance of piece move #2>		GKC parameter B
++board1=<size of board in 1st dimension>	GKC parameter n
++board2=<size of board in 2nd dimension>	GKC parameter m
+
+Example:  A standard generalized knight's circuit (GKC) instance is
+(A,B) - n x m where the move is (A,B) and the board size is (n,m).
+The standard knight's tour consists of a (1,2) move on an (8,8) board
+which would result in the following argument:
+	-graphgen knighttour +move1=1 +move2=2 +board1=8 +board2=8
+
+
+Parameters for: -graphgen crossroads
+
++subgraphs=<# of crossroads subgraphs>		number of minimum-sized
+						crossroads subgraphs with
+						which to make the crossroads
+						graph
+
+Parameters for: -graphgen addcycle
+
++numcycles=<# of cycles to add>			
+
+Example:  An addcycle graph adds the specified number of Hamiltonian
+cycles to an empty graph.  The fractional component of the number
+specifies that a path of length proportional to the fraction be added
+on top of the cycles.  If we want to generate a 300 vertex graph made of 2
+Hamiltonian Cycles and a path of 150 vertices, then we want the numcycles
+parameters to have a value of 2.5, which would result in the following
+argument:
+	-graphgen addcycle +nvertex=300 +numcycles=2.5
+
+
+Parameters for: -graphgen addpath
+
++path1=<length of path #1 as decimal between 0 and 1>			
++path2=<length of path #2 as decimal between 0 and 1>			
+
+
+Parameters for: -graphgen iccs
+
++subgraphs=<# of iccs subgraphs>		
++indsetsize=<# of vertices in independent set of each subgraph>
+
+
+3.2  Algorithm Argument
+-----------------------
+
+This argument specifies which algorithm to use to find Hamiltonian Cycles
+Format: -algorithm <name>  [parameters]
+
+<name> Values		Description ( [P] means has parameters )
+----------------------------------------------------------------
+nosolve			no algorithm execution(default)
+noprune_bt		standard backtrack without pruning
+backtrack		backtrack algorithm with pruning    [P]
+posa_heur		posa-like heuristic algorithm       [P]
+
+Parameters for: -algorithm backtrack 
+
++initvert=<selectmethod>	how to select the initial vertex
+----------------------------------------------------------------
+random				at random  (default)
+maxdeg				a random vertex of maximum degree
+randeg				probability of selection proportional 
+					to degree
+first				select first vertex in graph
+
+
++degsort=<sortmethod>		how to sort neighbours to get order in 
+					which to visit them
+----------------------------------------------------------------
+rand				random order (default)
+min				min degree first, increasing order
+max				max degree first, decreasing order
+
+
++pruneopt=[n][b][c][o][a]	specify which pruning to do
+----------------------------------------------------------------
+n				no pruning done (default)
+b				basic pruning only (deg 2)
+c				forced path / cycle pruning
+o				connected components pruning
+a				articulation (cutpoint) pruning
+
++restart=n			use the iterated restart technique
+----------------------------------------------------------------
+n				size of increase in maximum node limit
+				per iteration.  
+
+Parameters for: -algorithm posa_heur
+(The default is having none of these flags.)
+
++smartvist	
+  Use a better-than-random strategy for choosing the next neighbour to go
+to.
+
++smartcomplete
+  Use order-1 crossovers (a single rotational transformation) when trying
+to form a Hamiltonian Cycle from a Hamiltonian Path.
+
++cycleextend
+  Use the cycle extension technique.  Using this flag automatically sets 
+the +smartvisit and +smartcomplete flags
+
+
+3.3  Report Argument
+--------------------
+
+This argument controls what information and results are reported back to 
+the user.  
+Format:  -report [report parameters]
+(The default setting is to have no report flags set.)
+
+Report Parameters	Description
+-------------------------------------------------------------------------
++options		report option settings in .option file
++graph			report graph statistics in .log file
++alg			report information about algorithm execution
+			in .log file
++solution		list the Hamiltonian Cycle (if found) in .sol file
++summary		summarize the experiment results using the one-line
+			experiment format of the tester file in .summary file
+
+Example: -report +options +solution +summary
+
+See Section 5 for a more detailed description of the various files produced
+by the program.
+
+
+3.4  Other Arguments
+--------------------
+
+-instancetests <num> 
+	perform <num> tests (algorithm executions) per graph instance
+
+-graphtests <num> 
+	generate <num> graphs for testing (one at a time) 
+
+-loadgraph <graphfile> 
+	instead of generating a graph, load the graph from file <graphfile>
+
+-savegraph [<graphfile>] 
+	save the generated graph to the file <graphfile>.  If no filename
+	is specified, use the base name (the name of the option file
+	without the ".opt" extension) and add a ".graph" extension.
+	If multiple graphs are being used, use a ".graph<num>" extension.
+
+-randseed <seed> 
+    specify the random number generator seed.  If none is specified, 
+    a seed is generated using the current time.
+
+-timelimit <time> 
+    specify the maximum time <time> in seconds for the algorithm to run.
+    The default is -1 (no maximum time limit).  The time limit is only used
+    for backtrack algorithms.
+
+
+4.  The Test File Format
+------------------------
+
+The test file consists of a list of experiments.  Each experiment
+is described on one line using a condensed summary format.  The program 
+converts each one-line experiment summary into a complete option file
+to run the experiment.  
+
+Note that since not all option file arguments can be specified in the
+one-line description, the program uses default values for several
+arguments.  These defaults are:  "-timelimit = 1800" (30 minutes)
+and "-report +summary" (only produce the summary file and statistics file
+for results).
+
+Any line can be made into a comment by placing the '#' character at the
+start of the line.  All commented lines are ignored.
+Note:  A blank line should be placed after a commented line.  A bug in the
+parser sometimes causes the line after a commented line to be ignored
+
+The remainder of this section describes the experiment summary format.
+There are three major components to the experiment summary format.
+The first component specifies the graph type and parameters to be
+generated.  The second component specifies the algorithm to use, and the
+third component gives test information.  Each section is separated by a
+dash character "-".  Each of these sections is described separately below.
+
+Thus the overall format of the experiment string is:
+	<GRAPH>-<ALGORITHM>-<TEST>
+
+The sampletest.test file provided with the program contains several
+experiment summarys along with a description of the experiment they
+describe.
+
+The format to specify parameters is described using a special notation.
+In this notation, lower case letters must be present as indicated,
+square brackets [] indicate optional parameters and numbers indicate
+fields that must be filled.
+
+Example:  sample[o][f]11[and22]	
+	There are two optional flags, 'o' and 'f' and
+	two fields '11' and '22', with the letters 'and' and the field '22'
+	being optional.  Assuming valid numbers are used for fields '11' 
+	and '22', the following experiment strings based on this notation 
+	string are all valid:
+		sampleo100
+		samplef150
+		sampleof200and100
+		sample100
+		sample300and450
+
+
+4.1  The Graph Specification Section
+------------------------------------
+
+The first two letters specify the type of graph to generate.
+Note that geometric graphs are not supported in the test file.
+
+First 2 Letters		Graph Type
+----------------------------------
+ra			random
+db			degreebound
+kt			knighttour
+cr			crossroads
+ac			addcycle
+ap			addpath
+ic			iccs
+
+Each type of graph uses a different set of parameters:  each is described
+below.
+
+
+Degreebound Graph Format:  db[h]11d22p33[d44p55]
+
+h = set ensureham flag (so graph is guaranteed to be Hamiltonian)
+
+11 = number of vertices
+
+the d22p33 string set can be repeated any number of times
+it specifies that there should be a '33' percentage of vertices of degree
+'22'.  The maximum degree that can be specified is 5.
+
+Example:  db100d2p0.15d3p0.85 
+This specifies a 100 vertex degreebound graph with 15% of the vertices
+degree 2 and 85% of the vertices degree 3.
+
+
+Knighttour Graph Format:  ktm11x22b33x44
+
+Create an instance of the generalized knights circuit problem
+('11','22') - '33' x '44'
+So the board size is '33' by '44' and the piece move distances are '11' 
+and '22'.
+
+
+Random Graph Format #1:  ra[h]11d22
+
+h = set ensureham flag (so graph is guaranteed to be Hamiltonian)
+11 = number of vertices
+22 = value of degree constant
+
+Random Graph Format #2:  ra[h]11m22
+
+h = set ensureham flag (so graph is guaranteed to be Hamiltonian)
+11 = number of vertices
+22 = value of mean degree
+
+
+Crossroads Graph Format:  cr11
+
+11 = number of minimum-sized crossroads subgraphs
+
+
+AddCycle Graph Format:  ac11c22
+
+11 = number of vertices
+22 = number of cycles to add.
+
+
+AddPath Graph Format:  ap11p22p33
+
+11 = number of vertices
+22 = length of first path (as a decimal)
+33 = length of second path (as a decimal)
+
+
+ICCS Graph Format:  ic11i22
+
+11 = number of subgraphs
+22 = size of independent sets in each subgraph
+
+
+4.2  The Algorithm Specification Section
+----------------------------------------
+
+The first two letters specify the algorithm to use.
+
+First 2 Letters		Algorithm
+----------------------------------
+nb			no-pruning backtrack
+ba			backtrack (with pruning)
+ph			posa-like heuristic algorithm (posa-heur)
+
+The no-pruning backtrack algorithm has no parameters.  The parameters of
+the other two algorithms are described below.
+
+Backtrack Algorithm Format:  ba[i11][O123...]
+
+i11 specifies the use of the iterated restart technique
+	11 = the increment size (what to multiply max nodes by each iteration)
+
+The 'O' (upper case letter O) is mandetory if any options are specified
+(1, 2, 3) and left out if no options are specified.
+
+1 = initial vertex selection strategy
+  = 'r' = random  (default)
+  = 'm' = maxdeg : select random vertex of maximum degree
+  = 'd' = randeg : select vertex at random with probability proportional to
+			vertex degree
+
+2 = degree sorting strategy for sorting visit list
+	(the order in which to visit the neighbours of the current endpoint)
+  = 'r' = random (default)
+  = 'i' = increasing degree : start with lowest degree vertices
+  = 'd' = decreasing degree : start with highest degree vertices
+
+3 = pruning operations to carry out
+    these may be combined: list all operations desired
+  = 'b' = basic pruning (based on degree 2 vertices) 
+  = 'c' = cycle pruning (delete edges joining forced cycles)
+  = 'o' = connected component checking
+  = 'a' = articulation point (cutpoint) checking
+
+Example of backtrack algorithm:  baOmibco
+  - backtrack, maxdeg initial vertex selection, increasing degree
+    sorting, basic pruning, cycle pruning, connected component checking
+
+
+Posa-Heur Algorithm Format: ph[O...]
+
+The 'O' (letter) is mandetory if any options are specified and left out
+if no options are specified.
+
+1 = options for algorithm
+    these may be combined: list all options desired
+  = 'v' = smartvisit (instead of random visit)
+  = 's' = smartcomplete (instead of standard complete)
+  = 'c' = use cycle extension technique
+
+Example of heuristic algorithm: phOvsc
+  - posa-heur algorithm, smartvisit, smartcomplete, cycle extension
+
+
+4.3  The Test Information Section
+----------------------------------------
+
+Test Information Format: [t][s]i11g22
+
+t = turn off time limit for tests
+s = optional save graph flag.  If present, graphs are saved (-savegraph
+        option in option file)
+11  = number of test instances (algorithm executions per graph)
+22  = number of graphs (number of graphs to generate to run algorithm on)
+
+
+5.  Output Files
+----------------
+
+5.1  Output Files for Option File Experiments
+---------------------------------------------
+
+All output files have the same base filename (the part of the filename
+before the final extension).  The base filename is the name of the
+option file without the ".opt" extension.  In option file experiments,
+7 different output files can be generated.  Each of these files is
+described below:
+
+
+Output File	
+Extension	Description
+------------------------------------------------------------------------
+.stats		Contains the experimental results for each trial.  Also
+		includes the basic algorithm used, a short description
+		of the graph generated (with parameter values) and the
+		value of the random number seed so that the experiment
+		can be repeated as desired.
+
+.log		A log file containing information on algorithm execution
+		(-report +alg) and graph statistics (-report +graph).
+
+.options  	Contains all the option settings (including the random
+		number seed).  Created using -report +options.  
+
+.sol		Creates a solution file which lists the Hamiltonian Cycle
+		found as a list of vertices, 10 per line.  Specify using
+		-report +solution.  If the graph being solved is a 
+		generalized knight's circuit graph, then the board sizes
+		and move distances are also printed to this file.
+	
+.summary  	Creates a summary file containing an one-line summary of
+		the experiment in the same format as used in test files,
+		along with some overall results of the experiment.
+		Everything is presented on 1 line so that the information
+		from this file can be used in generating the .results file
+		produced by test file experiments.  The summary file is
+		created using -report +summary
+
+.graph	  	Creates a graph file containing the graph generated for
+		the experiment (when there is only 1 graph).  Specified
+		using the -savegraph argument.  
+
+.graph<num>	For experiments in which more than one graph is generated
+		(-graphtests X), each graph is saved in a different file by
+		adding the graph number (<num>) to the filename.  Specified
+		using the -savegraph argument.  If the -timelimit option is
+		set, then any graphs for which the algorithm hits the time
+		limit are saved even if the -savegraph argument is not
+		specified.  Note that even if there is only 1 graphtest,
+		the graph is saved with a filename extension of ".graph1".
+
+
+5.2  Output Files for Test File Experiments
+---------------------------------------------
+
+In test file experiments each individual experiment is run using an
+option file.  The name of each option file corresponds to the one-line
+experiment summary.  Thus, the results for each experiment are saved
+using the one-line experiment summary as the base filename (as was
+described in Section 5.1).
+
+For a test file experiment, a results file is generated which is a
+concatenation of all the .summary files produced by the individual
+experiments in that test file.  The results file is given the same base
+filename as the test file, and instead of the ".test" extension is given
+the ".results" extension.
+
+
+5.3  Example of Output Filenames
+---------------------------------------------
+
+In this section we provide a simple example of a test file experiment to
+show how the different files are named.
+
+We have a test file "sample.test" with the two following experiments:
+	basic_experiment
+	big_experiment
+
+We run our program using the command line "> main -t sample.test"
+which runs a test file experiment on test file sample.test.
+The program generates option file "basic_experiment.opt" and makes a system
+call to itself (> main -o basic_experiment.opt).
+  The option file experiment on the basic_experiment.opt option file is
+performed.  The standard (default) -report argument settings set by the
+test file experiment are: options, summary so the program produces the
+following 3 files and terminates.
+	basic_experiment.options
+	basic_experiment.stats
+	basic_experiment.summary
+  The test file experiment program now generates option file
+"big_experiment.opt" and makes a system call to itself again.  The option
+file experiment produces another 3 files:
+	big_experiment.options
+	big_experiment.stats
+	big_experiment.summary
+  
+Finally, the test file experiment program generates a results file 
+named "sample.results" combining the information in the two .summary
+files.
+
+
+	
+
+
